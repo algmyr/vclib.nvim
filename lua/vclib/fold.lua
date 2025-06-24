@@ -68,7 +68,6 @@ end
 ---@param bufnr integer
 ---@param foldexpr string
 function M.toggle(bufnr, foldexpr)
-  vim.print(bufnr, foldexpr)
   if vim.b[bufnr].vclib_folded then
     _disable(bufnr)
     if vim.b[bufnr].vclib_folded.method == "manual" then
