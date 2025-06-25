@@ -4,7 +4,7 @@ local M = {}
 ---@param intervals Intervals
 ---@param last_line integer
 ---@return integer[]
-local function _compute_levels(intervals, context, last_line)
+function M.compute_levels(intervals, context, last_line)
   local max_level = #context
 
   local levels = {}
@@ -61,7 +61,7 @@ function M.maybe_update_levels(intervals, context)
     vim.b.vclib_fold_changedtick = vim.b.changedtick
     -- Update cached fold levels.
     local last_line = vim.fn.line "$"
-    vim.b.levels = _compute_levels(intervals, context, last_line)
+    vim.b.levels = M.compute_levels(intervals, context, last_line)
   end
 end
 
