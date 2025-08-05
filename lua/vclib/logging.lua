@@ -6,14 +6,17 @@ function M.verbose_logger(namespace)
   ---@param label string|nil An optional label to include in the message.
   local function verbose(msg, label)
     label = label or debug.getinfo(3, "n").name
-    if vim.o.verbose ~= 0 then
-      local l = label and ":" .. label or ""
-      if type(msg) == "string" then
-        print("[" .. namespace .. l .. "] " .. msg)
-      else
-        print("[" .. namespace .. l .. "] " .. vim.inspect(msg))
+
+    vim.schedule(function()
+      if vim.o.verbose ~= 0 then
+        local l = label and ":" .. label or ""
+        if type(msg) == "string" then
+          print("[" .. namespace .. l .. "] " .. msg)
+        else
+          print("[" .. namespace .. l .. "] " .. vim.inspect(msg))
+        end
       end
-    end
+    end)
   end
   return verbose
 end
