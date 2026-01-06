@@ -44,15 +44,15 @@ function M.compute_levels(intervals, context, last_line)
   return levels
 end
 
-local function _enable(foldexpr)
-  vim.wo.foldexpr = foldexpr
-  vim.wo.foldmethod = "expr"
-  vim.wo.foldlevel = 0
+local function _enable(wo, foldexpr)
+  wo.foldexpr = foldexpr
+  wo.foldmethod = "expr"
+  wo.foldlevel = 0
 end
 
-local function _disable(bufnr)
-  vim.wo.foldmethod = vim.b[bufnr].vclib_folded.method
-  vim.wo.foldtext = vim.b[bufnr].vclib_folded.text
+local function _disable(wo, bufnr)
+  wo.foldmethod = vim.b[bufnr].vclib_folded.method
+  wo.foldtext = vim.b[bufnr].vclib_folded.text
   vim.cmd "normal! zv"
 end
 
@@ -68,8 +68,15 @@ end
 ---@param bufnr integer
 ---@param foldexpr string
 function M.toggle(bufnr, foldexpr)
+  -- Use the local window options to avoid weird inheritance issues.
+  -- With plain `vim.wo` newly opened buffers in the window would
+  -- inherit the option which is undesirable.
+  --
+  -- See notes about setlocal in: https://neovim.io/doc/user/lua.html#vim.wo
+  local winid = vim.api.nvim_get_current_win()
+  local local_wo = vim.wo[winid][0]
   if vim.b[bufnr].vclib_folded then
-    _disable(bufnr)
+    _disable(local_wo, bufnr)
     if vim.b[bufnr].vclib_folded.method == "manual" then
       vim.cmd "loadview"
     end
@@ -82,7 +89,7 @@ function M.toggle(bufnr, foldexpr)
       vim.cmd "mkview"
       vim.o.viewoptions = old_vop
     end
-    _enable(foldexpr)
+    _enable(local_wo, foldexpr)
   end
 end
 
