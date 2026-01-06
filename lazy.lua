@@ -1,3 +1,3 @@
 return {
-  { 'algmyr/vclib.nvim', lazy = true },
+  { "algmyr/vclib.nvim", lazy = true },
 }

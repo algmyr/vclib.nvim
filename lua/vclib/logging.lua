@@ -21,6 +21,6 @@ function M.verbose_logger(namespace)
   return verbose
 end
 
-M.vclib_verbose = M.verbose_logger("vclib")
+M.vclib_verbose = M.verbose_logger "vclib"
 
 return M

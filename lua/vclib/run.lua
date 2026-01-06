@@ -1,6 +1,6 @@
 local M = {}
 
-local logging = require("vclib.logging")
+local logging = require "vclib.logging"
 
 function M.run_with_timeout(cmd, opts, callback)
   logging.vclib_verbose("Running command: " .. table.concat(cmd, " "))
