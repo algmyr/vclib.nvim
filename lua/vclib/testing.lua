@@ -1,5 +1,39 @@
 local M = {}
 
+--- Helper to parse multiline strings into lines, stripping common indentation.
+---@param s string
+---@return string[]
+function M.dedent_into_lines(s)
+  local l = 1
+  while s:sub(l, l) == "\n" do
+    l = l + 1
+  end
+  local r = #s
+  while true do
+    local c = s:sub(r, r)
+    if c ~= "\n" and c ~= " " then
+      break
+    end
+    r = r - 1
+  end
+  local stripped = s:sub(l, r)
+  local lines = vim.split(stripped, "\n", { plain = true })
+  local min_indent = math.huge
+  for _, line in ipairs(lines) do
+    local indent = #line - #line:gsub("^%s*", "")
+    if #line > 0 and indent < min_indent then
+      min_indent = indent
+    end
+  end
+  if min_indent == math.huge then
+    min_indent = 0
+  end
+  for i, line in ipairs(lines) do
+    lines[i] = line:sub(min_indent + 1)
+  end
+  return lines
+end
+
 local function _run_test_suite(suite_name, test_suite)
   local suite_failed = 0
   local suite_total = 0
@@ -59,10 +93,11 @@ function M.run_tests(test_modules)
   end
 end
 
-function M.assert_list_eq(actual, expected)
+function M.assert_list_eq(actual, expected, msg_prefix)
+  msg_prefix = msg_prefix or ""
   assert(
     #actual == #expected,
-    string.format("Lists have different lengths: %d vs %d", #actual, #expected)
+    string.format(msg_prefix .. "Lists have different lengths: %d vs %d", #actual, #expected)
   )
   local diff = ""
   for i = 1, #expected do
@@ -72,7 +107,7 @@ function M.assert_list_eq(actual, expected)
     end
   end
   if diff ~= "" then
-    error("Lists differ:" .. diff)
+    error(msg_prefix .. "Lists differ:" .. diff)
   end
 end
 
