@@ -39,13 +39,24 @@ end
 
 local is_ignored_cache = {}
 
+-- TODO(algmyr): Consider removing this at some point.
+--- Absolute path, to support versions <0.11 (for now).
+---@param path string
+local function _abspath(path)
+  if vim.fs.abspath then
+    return vim.fs.abspath(path)
+  else
+    return vim.fn.fnamemodify(path, ":p")
+  end
+end
+
 -- Check if file should be ignored as per gitignore rules.
 function M.is_ignored(path)
   if is_ignored_cache[path] ~= nil then
     return is_ignored_cache[path]
   end
 
-  local absolute_path = vim.fs.normalize(vim.fs.abspath(path))
+  local absolute_path = vim.fs.normalize(_abspath(path))
 
   local vcs_root = _get_vcs_root(vim.fs.dirname(absolute_path))
   if vcs_root then
