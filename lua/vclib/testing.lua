@@ -34,6 +34,14 @@ function M.dedent_into_lines(s)
   return lines
 end
 
+--- Helper to parse multiline strings into lines, stripping common indentation.
+---@param s string
+---@return string
+function M.dedent(s)
+  local lines = M.dedent_into_lines(s)
+  return table.concat(lines, "\n") .. "\n"
+end
+
 local function _run_test_suite(suite_name, test_suite)
   local suite_failed = 0
   local suite_total = 0
@@ -97,7 +105,11 @@ function M.assert_list_eq(actual, expected, msg_prefix)
   msg_prefix = msg_prefix or ""
   assert(
     #actual == #expected,
-    string.format(msg_prefix .. "Lists have different lengths: %d vs %d", #actual, #expected)
+    string.format(
+      msg_prefix .. "Lists have different lengths: %d vs %d",
+      #actual,
+      #expected
+    )
   )
   local diff = ""
   for i = 1, #expected do
