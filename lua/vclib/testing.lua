@@ -98,6 +98,7 @@ function M.run_tests(test_modules)
     print(string.format("All tests passed (%d tests)", total))
   else
     print(string.format("%d/%d tests failed", failed, total))
+    vim.cmd "cq"
   end
 end
 
