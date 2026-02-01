@@ -1,5 +1,70 @@
 local M = {}
 
+---@return boolean
+local function is_headless()
+  return #vim.api.nvim_list_uis() == 0
+end
+
+local function color(description)
+  local words = vim.split(description, " ", { plain = true })
+  local colors = {
+    reset = 0,
+    red = 1,
+    green = 2,
+    yellow = 3,
+    blue = 4,
+    magenta = 5,
+    cyan = 6,
+    white = 7,
+  }
+  local base = 30
+  local color = nil
+  for _, word in ipairs(words) do
+    if word == "bright" then
+      base = 90
+    else
+      local c = colors[word]
+      if not c then
+        error("Unknown color: " .. word)
+      end
+      color = c
+    end
+  end
+  if not color then
+    error("No color specified in description: " .. description)
+  end
+  if color ~= 0 then
+    return string.format("\27[%dm", base + color)
+  end
+  return "\27[0m"
+end
+
+FAIL = color "bright red"
+PASS = color "bright green"
+RESET = color "reset"
+
+---@param text string
+---@param color string
+---@return string
+local function colorize(text, color)
+  if not is_headless() then
+    -- Interactive session: do not use colors.
+    return text
+  end
+  return color .. text .. RESET
+end
+
+--- Output text using the appropriate method for current mode.
+---@param text string
+local function output(text)
+  if is_headless() then
+    io.stdout:write(text .. "\n")
+    io.stdout:flush()
+  else
+    print(text)
+  end
+end
+
 --- Helper to parse multiline strings into lines, stripping common indentation.
 ---@param s string
 ---@return string[]
@@ -56,26 +121,36 @@ local function _run_test_suite(suite_name, test_suite)
     suite_total = suite_total + 1
     if not status then
       suite_failed = suite_failed + 1
-      print(string.format("Test %s failed: %s", full_test_name, err))
+      output(colorize("✗ FAIL", FAIL) .. " " .. full_test_name)
+      if err then
+        -- Massage errors into a more readable format.
+        err = err:gsub(":(%s)", ":\n", 1)
+        err = "  " .. err:gsub("\n", "\n  ")
+        output(err)
+      end
     end
   end
 
   if suite_failed == 0 then
-    print(
-      string.format(
-        "All tests in %s passed (%d tests)",
-        suite_name,
-        suite_total
-      )
+    output(
+      colorize("✓", PASS)
+        .. " "
+        .. string.format(
+          "All tests in %s passed (%d tests)",
+          suite_name,
+          suite_total
+        )
     )
   else
-    print(
-      string.format(
-        "%d/%d tests failed in %s",
-        suite_failed,
-        suite_total,
-        suite_name
-      )
+    output(
+      colorize("✗", FAIL)
+        .. " "
+        .. string.format(
+          "%d/%d tests failed in %s",
+          suite_failed,
+          suite_total,
+          suite_name
+        )
     )
   end
   return suite_failed, suite_total
@@ -86,18 +161,18 @@ function M.run_tests(test_modules)
   local total = 0
   for _, test_module_name in ipairs(test_modules) do
     local test_module = require(test_module_name)
-    print(string.format("=== Running tests in %s ===", test_module_name))
+    output(string.format("=== Running tests in %s ===", test_module_name))
     for suite_name, test_suite in pairs(test_module) do
       local suite_failed, suite_total = _run_test_suite(suite_name, test_suite)
       failed = failed + suite_failed
       total = total + suite_total
     end
   end
-  print "--------------------------------"
+  output "--------------------------------"
   if failed == 0 then
-    print(string.format("All tests passed (%d tests)", total))
+    output(colorize(string.format("All tests passed (%d tests)", total), PASS))
   else
-    print(string.format("%d/%d tests failed", failed, total))
+    output(colorize(string.format("%d/%d tests failed", failed, total), FAIL))
     vim.cmd "cq"
   end
 end
