@@ -55,8 +55,11 @@ local function colorize(text, color)
 end
 
 --- Output text using the appropriate method for current mode.
----@param text string
+---@param text string|string[]
 local function output(text)
+  if type(text) == "table" then
+    text = table.concat(text, " ")
+  end
   if is_headless() then
     io.stdout:write(text .. "\n")
     io.stdout:flush()
@@ -108,6 +111,7 @@ function M.dedent(s)
 end
 
 local function _run_test_suite(suite_name, test_suite)
+  local suite_start_time = vim.loop.hrtime()
   local suite_failed = 0
   local suite_total = 0
   local test_cases = test_suite.test_cases
@@ -131,32 +135,24 @@ local function _run_test_suite(suite_name, test_suite)
     end
   end
 
+  local duration_ms = (vim.loop.hrtime() - suite_start_time) / 1e6
+
+  local symbol
+  local outcome
+  local timing = string.format("(%.1fms)", duration_ms)
   if suite_failed == 0 then
-    output(
-      colorize("✓", PASS)
-        .. " "
-        .. string.format(
-          "All tests in %s passed (%d tests)",
-          suite_name,
-          suite_total
-        )
-    )
+    symbol = colorize("✓", PASS)
+    outcome = string.format("(%d passed)", suite_total)
   else
-    output(
-      colorize("✗", FAIL)
-        .. " "
-        .. string.format(
-          "%d/%d tests failed in %s",
-          suite_failed,
-          suite_total,
-          suite_name
-        )
-    )
+    symbol = colorize("✗", FAIL)
+    outcome = string.format("(%d/%d failed)", suite_failed, suite_total)
   end
+  output { symbol, suite_name, outcome, timing }
   return suite_failed, suite_total
 end
 
 function M.run_tests(test_modules)
+  local start_time = vim.loop.hrtime()
   local failed = 0
   local total = 0
   for _, test_module_name in ipairs(test_modules) do
@@ -168,11 +164,29 @@ function M.run_tests(test_modules)
       total = total + suite_total
     end
   end
+
+  local total_duration_ms = (vim.loop.hrtime() - start_time) / 1e6
   output "--------------------------------"
+  local timing = string.format("(%.1fms)", total_duration_ms)
+  local msg
   if failed == 0 then
-    output(colorize(string.format("All tests passed (%d tests)", total), PASS))
+    msg = colorize(
+      string.format("All %d tests passed", total, total_duration_ms),
+      PASS
+    )
   else
-    output(colorize(string.format("%d/%d tests failed", failed, total), FAIL))
+    msg = colorize(
+      string.format(
+        "%d/%d tests failed (%.1fms)",
+        failed,
+        total,
+        total_duration_ms
+      ),
+      FAIL
+    )
+  end
+  output { msg, timing }
+  if failed > 0 then
     vim.cmd "cq"
   end
 end
