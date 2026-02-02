@@ -151,24 +151,32 @@ local function _run_test_suite(
 
   local symbol
   local outcome
+  local name = suite_name
   local timing = string.format("(%.1fms)", duration_ms)
-  if suite_failed == 0 then
-    symbol = colorize("✓", PASS)
-    outcome = string.format("(all %d passed)", suite_total)
+  local blocks
+  if suite_total == 0 then
+    symbol = colorize("-", NOTE)
+    name = colorize(suite_name, NOTE)
+    blocks = { symbol, name }
   else
-    symbol = colorize("✗", FAIL)
-    outcome = string.format("(%d/%d failed)", suite_failed, suite_total)
+    if suite_failed == 0 then
+      symbol = colorize("✓", PASS)
+      outcome = string.format("(all %d passed)", suite_total)
+      blocks = { symbol, suite_name, outcome, timing }
+    else
+      symbol = colorize("✗", FAIL)
+      outcome = string.format("(%d/%d failed)", suite_failed, suite_total)
+      blocks = { symbol, suite_name, outcome, timing }
+    end
   end
-  output { symbol, suite_name, outcome, timing }
-  if suite_skipped > 0 then
-    output {
-      " ",
-      string.format(
-        colorize("%d tests were skipped due to filtering", NOTE),
-        suite_skipped
-      ),
-    }
+  if suite_skipped > 0 and suite_total == 0 then
+    blocks[#blocks + 1] =
+      colorize(string.format("(all %d skipped)", suite_skipped), NOTE)
+  else
+    blocks[#blocks + 1] =
+      colorize(string.format("(%d skipped)", suite_skipped), NOTE)
   end
+  output(blocks)
   return suite_failed, suite_total, suite_skipped
 end
 
