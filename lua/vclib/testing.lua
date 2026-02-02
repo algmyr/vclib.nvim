@@ -111,7 +111,7 @@ function M.dedent(s)
 end
 
 local function _run_test_suite(suite_name, test_suite)
-  local suite_start_time = vim.loop.hrtime()
+  local suite_start_time = vim.uv.hrtime()
   local suite_failed = 0
   local suite_total = 0
   local test_cases = test_suite.test_cases
@@ -135,7 +135,7 @@ local function _run_test_suite(suite_name, test_suite)
     end
   end
 
-  local duration_ms = (vim.loop.hrtime() - suite_start_time) / 1e6
+  local duration_ms = (vim.uv.hrtime() - suite_start_time) / 1e6
 
   local symbol
   local outcome
@@ -152,7 +152,7 @@ local function _run_test_suite(suite_name, test_suite)
 end
 
 function M.run_tests(test_modules)
-  local start_time = vim.loop.hrtime()
+  local start_time = vim.uv.hrtime()
   local failed = 0
   local total = 0
   for _, test_module_name in ipairs(test_modules) do
@@ -167,7 +167,7 @@ function M.run_tests(test_modules)
     end
   end
 
-  local total_duration_ms = (vim.loop.hrtime() - start_time) / 1e6
+  local total_duration_ms = (vim.uv.hrtime() - start_time) / 1e6
   output "--------------------------------"
   local timing = string.format("(%.1fms)", total_duration_ms)
   local msg
