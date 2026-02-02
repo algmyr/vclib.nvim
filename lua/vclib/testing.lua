@@ -43,6 +43,7 @@ end
 FAIL = color "bright red"
 PASS = color "bright green"
 NOTE = color "bright black"
+HEADER = color "bright blue"
 RESET = color "reset"
 
 ---@param text string
@@ -204,7 +205,9 @@ function M.run_tests(test_modules)
     local test_module = require(test_module_name)
     -- Slightly less verbose name for the test module, removing first component.
     local file_name = test_module_name:match "^[^.]+%.(.+)$" or test_module_name
-    output(string.format("=== Running tests in %s ===", file_name))
+    output(
+      colorize(string.format("=== Running tests in %s ===", file_name), HEADER)
+    )
     for suite_name, test_suite in pairs(test_module) do
       local suite_failed, suite_total, suite_skipped =
         _run_test_suite(file_name, suite_name, test_suite, should_run_test)
