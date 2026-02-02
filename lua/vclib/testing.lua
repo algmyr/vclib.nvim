@@ -157,7 +157,9 @@ function M.run_tests(test_modules)
   local total = 0
   for _, test_module_name in ipairs(test_modules) do
     local test_module = require(test_module_name)
-    output(string.format("=== Running tests in %s ===", test_module_name))
+    -- Slightly less verbose name for the test module, removing first component.
+    local file_name = test_module_name:match "^[^.]+%.(.+)$" or test_module_name
+    output(string.format("=== Running tests in %s ===", file_name))
     for suite_name, test_suite in pairs(test_module) do
       local suite_failed, suite_total = _run_test_suite(suite_name, test_suite)
       failed = failed + suite_failed
