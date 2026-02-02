@@ -180,8 +180,8 @@ local function _run_test_suite(
   return suite_failed, suite_total, suite_skipped
 end
 
-function M.run_tests(test_modules, options)
-  options = options or {}
+function M.run_tests(test_modules)
+  local options = { filter = vim.env.TEST_FILTER }
   local function should_run_test(name)
     if not options.filter then
       return true
