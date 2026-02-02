@@ -8,7 +8,8 @@ end
 local function color(description)
   local words = vim.split(description, " ", { plain = true })
   local colors = {
-    reset = 0,
+    reset = -1,
+    black = 0,
     red = 1,
     green = 2,
     yellow = 3,
@@ -33,7 +34,7 @@ local function color(description)
   if not color then
     error("No color specified in description: " .. description)
   end
-  if color ~= 0 then
+  if color ~= -1 then
     return string.format("\27[%dm", base + color)
   end
   return "\27[0m"
