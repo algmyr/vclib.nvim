@@ -170,20 +170,9 @@ function M.run_tests(test_modules)
   local timing = string.format("(%.1fms)", total_duration_ms)
   local msg
   if failed == 0 then
-    msg = colorize(
-      string.format("All %d tests passed", total, total_duration_ms),
-      PASS
-    )
+    msg = colorize(string.format("All %d tests passed", total), PASS)
   else
-    msg = colorize(
-      string.format(
-        "%d/%d tests failed (%.1fms)",
-        failed,
-        total,
-        total_duration_ms
-      ),
-      FAIL
-    )
+    msg = colorize(string.format("%d/%d tests failed", failed, total), FAIL)
   end
   output { msg, timing }
   if failed > 0 then
